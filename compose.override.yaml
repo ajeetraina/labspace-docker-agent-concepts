@@ -1,0 +1,17 @@
+services:
+  configurator:
+    environment:
+      PROJECT_CLONE_URL: https://github.com/dockersamples/labspace-docker-agent
+
+  mcp-gateway:
+    image: docker/mcp-gateway:v0.40.0
+    container_name: labspace-mcp-gateway
+    command:
+      - --port=8080
+      - --transport=sse
+      - --servers=fetch,duckduckgo,context7
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped

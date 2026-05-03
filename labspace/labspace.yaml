@@ -1,0 +1,19 @@
+title: Labspace starter
+description: |
+  A basic template for creating a Labspace, including all of the boilerplate needed to write and publish a Labspace.
+
+sections:
+  - title: Introduction
+    contentPath: 01-introduction.md
+  - title: Getting Started
+    contentPath: 02-getting-started.md
+  - title: Using Built-in tools
+    contentPath: 03-using-builtin-tools.md  
+  - title: Using MCP
+    contentPath: 04-using-mcp.md
+  - title: Sharing agents
+    contentPath: 05-sharing-agents.md
+  - title: Introduction to Sub-agents
+    contentPath: 06-sub-agents.md
+  - title: Conclusion
+    contentPath: 07-conclusion.md
