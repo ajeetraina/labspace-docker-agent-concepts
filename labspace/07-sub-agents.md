@@ -1,4 +1,4 @@
-# Step 6: Introduction to Sub-agents
+# Step 7: Introduction to Sub-agents
 
 In the previous steps, we created individual agents with various tools. Now
 we'll learn about Docker Agent's most powerful feature: sub-agents. This allows you to

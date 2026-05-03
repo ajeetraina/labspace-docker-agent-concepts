@@ -62,10 +62,11 @@ agents that do things for you.
 | Step | Topic | Description |
 |------|-------|-------------|
 | 2 | Getting Started | Create your first agent |
-| 3 | Built-in Tools | File operations, shell commands, memory, and todo tracking |
-| 4 | MCP Integration | Connect to external services (fetch, search, documentation) |
-| 5 | Sharing Agents | Push and pull agents via Docker Hub |
-| 6 | Sub-agents | Build multi-agent teams with specialized roles |
-| 7 | Model Runner | Run local AI models on your local machine (reference only) |
-| 8 | Conclusion | Next steps and advanced topics |
+| 3 | Agent Concepts | The five pillars of every agent: perception, reasoning, action, goal-orientation, and autonomy |
+| 4 | Built-in Tools | File operations, shell commands, memory, and todo tracking |
+| 5 | MCP Integration | Connect to external services (fetch, search, documentation) |
+| 6 | Sharing Agents | Push and pull agents via Docker Hub |
+| 7 | Sub-agents | Build multi-agent teams with specialized roles |
+| 8 | Model Runner | Run local AI models on your local machine (reference only) |
+| 9 | Conclusion | Next steps and advanced topics |
 

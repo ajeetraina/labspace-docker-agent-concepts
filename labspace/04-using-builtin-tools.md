@@ -1,4 +1,4 @@
-# Step 3: Builtin Tools
+# Step 4: Builtin Tools
 
 An agent on its own can't do much other than just chat with you. To make agents
 more useful we need to give the agent tools that it can use to gather

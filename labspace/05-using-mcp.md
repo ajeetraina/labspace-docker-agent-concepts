@@ -1,4 +1,4 @@
-# Step 4: MCP (Model Context Protocol)
+# Step 5: MCP (Model Context Protocol)
 
 [MCP](https://modelcontextprotocol.io/) is an open-source standard for
 connecting AI applications to external systems.
@@ -187,4 +187,4 @@ Let's combine everything we've learned to create a powerful developer agent.
 
 ## Next Steps
 
-In Step 5, we'll learn how to share your agents with others using Docker Registry.
+In Step 6, we'll learn how to share your agents with others using Docker Registry.

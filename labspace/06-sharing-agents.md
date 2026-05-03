@@ -1,4 +1,4 @@
-## Step 5: Sharing Agents with Docker Registry
+## Step 6: Sharing Agents with Docker Registry
 
 By now, you should have a couple of agents, and maybe one that already does something useful. Wouldn't it be nice if we could share agents with others?
 
@@ -43,4 +43,4 @@ docker agent run $$dockerhubid$$/docker-agent-developer
 
 ## Next Steps
 
-In Step 6, we'll explore multi-agent systems and sub-agents.
+In Step 7, we'll explore multi-agent systems and sub-agents.

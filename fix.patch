@@ -1,0 +1,832 @@
+diff --git a/README.md b/README.md
+index 6f1663c..4aea82c 100644
+--- a/README.md
++++ b/README.md
+@@ -7,7 +7,8 @@ Welcome to this labspace on building intelligent agents using Docker Agent! This
+ In this workshop we will learn:
+ 
+ - How to create simple agents with Docker Agent
+-- How to use built-in generaic agentic tools
++- The five foundational concepts of every agent: perception, reasoning, action, goal-orientation, and autonomy
++- How to use built-in generic agentic tools
+ - How Docker Agent makes it easy to use an MCP server from the MCP Toolkit.
+ - How to share agents with Docker Registry
+ - When and how to use Multi-agent system
+diff --git a/labspace/01-introduction.md b/labspace/01-introduction.md
+index 86c5977..add96aa 100644
+--- a/labspace/01-introduction.md
++++ b/labspace/01-introduction.md
+@@ -62,10 +62,11 @@ agents that do things for you.
+ | Step | Topic | Description |
+ |------|-------|-------------|
+ | 2 | Getting Started | Create your first agent |
+-| 3 | Built-in Tools | File operations, shell commands, memory, and todo tracking |
+-| 4 | MCP Integration | Connect to external services (fetch, search, documentation) |
+-| 5 | Sharing Agents | Push and pull agents via Docker Hub |
+-| 6 | Sub-agents | Build multi-agent teams with specialized roles |
+-| 7 | Model Runner | Run local AI models on your local machine (reference only) |
+-| 8 | Conclusion | Next steps and advanced topics |
++| 3 | Agent Concepts | The five pillars of every agent: perception, reasoning, action, goal-orientation, and autonomy |
++| 4 | Built-in Tools | File operations, shell commands, memory, and todo tracking |
++| 5 | MCP Integration | Connect to external services (fetch, search, documentation) |
++| 6 | Sharing Agents | Push and pull agents via Docker Hub |
++| 7 | Sub-agents | Build multi-agent teams with specialized roles |
++| 8 | Model Runner | Run local AI models on your local machine (reference only) |
++| 9 | Conclusion | Next steps and advanced topics |
+ 
+diff --git a/labspace/02-getting-started.md b/labspace/02-getting-started.md
+index e55dc3a..ca35b62 100644
+--- a/labspace/02-getting-started.md
++++ b/labspace/02-getting-started.md
+@@ -101,4 +101,4 @@ Let's create the simplest possible agent.
+ 
+ ## Next Steps
+ 
+-In Step 3, we'll dive deeper into agent configuration and explore the powerful built-in tools that Docker Agent provides for file operations, web browsing, and more.
++In Step 3, we'll explore the five foundational concepts that make an agent an agent — and you'll see each one in action with small, working examples.
+diff --git a/labspace/03-agent-concepts.md b/labspace/03-agent-concepts.md
+new file mode 100644
+index 0000000..d309b9a
+--- /dev/null
++++ b/labspace/03-agent-concepts.md
+@@ -0,0 +1,663 @@
++# Step 3: Agent Concepts
++
++Before we go deeper into Docker Agent's tooling, let's take a step back and look at **what actually makes an agent an "agent"** — and how each piece maps to a Docker Agent YAML configuration.
++
++Every agent is built on five foundational pillars:
++
++| Pillar | What it is | Docker Agent mechanism |
++|---|---|---|
++| **Perception** | How the agent sees its environment | `toolsets:` (filesystem, shell, mcp) |
++| **Reasoning** | How the agent thinks through problems | `think`, `todo`, `memory` toolsets |
++| **Action** | How the agent changes its environment | Direct tool calls + sub-agent delegation |
++| **Goal-orientation** | What drives the agent to keep working | `instruction:` and `description:` |
++| **Autonomy** | The agent's ability to loop independently | The agentic loop + `--max-iterations` |
++
++We'll build a tiny working example for each one. Each example is self-contained — you can stop after any concept and you'll have a working agent that demonstrates that pillar in isolation.
++
++> **Make sure** you've completed Step 2 (Getting Started) and that `docker agent version` works and your API key is exported. The examples below assume both.
++
++---
++
++## Concept 1: Perception
++
++Perception is **how the agent sees its environment**. An agent without toolsets is blind — it can only use training data. Each toolset you add is a new sensor.
++
++1. Create a project with multiple "perception sources":
++
++    ```bash
++    mkdir -p ~/perception-test && cd ~/perception-test
++
++    # Source 1: A config file with a problem
++    cat > config.json << 'EOF'
++    {
++      "app_name": "MyApp",
++      "version": "2.1.0",
++      "database": {
++        "host": "localhost",
++        "port": 5432,
++        "password": "admin123"
++      },
++      "debug": true,
++      "api_key": "sk-1234567890abcdef"
++    }
++    EOF
++
++    # Source 2: A deployment script with hardcoded secrets
++    cat > deploy.sh << 'EOF'
++    #!/bin/bash
++    echo "Deploying MyApp..."
++    docker run -e DB_PASSWORD=admin123 -e API_KEY=sk-1234567890abcdef myapp:latest
++    echo "Deploy complete"
++    EOF
++
++    # Source 3: A README with project context
++    cat > README.md << 'EOF'
++    # MyApp
++    Production-ready application.
++    Ensure no secrets are hardcoded before deploying.
++    Run security checks before every release.
++    EOF
++    ```
++
++2. Create an agent with **multiple perception layers** in a `perception.yaml` file:
++
++    ```yaml save-as=perception.yaml
++    version: "2"
++
++    agents:
++      root:
++        model: $$model$$
++        description: Security auditor with multi-layer perception
++        instruction: |
++          You are a security auditor. You can perceive the environment through:
++
++          1. FILESYSTEM perception - Read all files in the current directory
++          2. SHELL perception - Run commands like `grep`, `find`, `cat` to scan
++          3. WEB perception - Search for latest security best practices
++
++          Audit this project for security issues. Use ALL your senses:
++          - Read every file to find hardcoded secrets
++          - Run shell commands to scan for patterns like passwords, API keys
++          - Search the web for current best practices on secret management
++
++          Report what you found using each perception method.
++        toolsets:
++          - type: filesystem
++          - type: shell
++          - type: mcp
++            remote:
++              url: http://mcp-gateway:8080
++              transport_type: sse
++    ```
++
++3. Run the agent:
++
++    ```bash
++    docker agent run perception.yaml
++    ```
++
++4. Then ask it:
++
++    ```console
++    Audit this project for security issues. Use filesystem, shell, and web search.
++    ```
++
++You should see the agent calling each toolset in turn — reading files, running `grep` for patterns, and searching the web for current guidance.
++
++### Key teaching point
++
++| Toolset | What it "sees" | Analogy |
++|---|---|---|
++| `filesystem` | Files, code, configs | 👁 **Eyes** — reading documents |
++| `shell` | System state, grep output, process info | 👂 **Ears** — listening to the system |
++| `mcp` (with duckduckgo) | Live web, latest best practices | 📡 **Radar** — sensing the outside world |
++
++**Remove a toolset and the agent goes partially blind.** Try removing the `mcp` block and running again — the agent can no longer search the web. That's the proof that each toolset is literally a perception channel.
++
++> **Bonus:** Create a version with NO toolsets and ask it the same question. Without perception, the agent can only give generic advice from its training data. It cannot actually see your code. That's the difference between a chatbot and an agent.
++
++---
++
++## Concept 2: Reasoning
++
++Reasoning is **how the agent thinks through problems**. Docker Agent has three built-in reasoning tools — `think` (scratchpad), `todo` (planning), and `memory` (context retention).
++
++1. Create a complex project that requires planning:
++
++    ```bash
++    mkdir -p ~/reasoning-test && cd ~/reasoning-test
++
++    cat > user.py << 'EOF'
++    class User:
++        def __init__(self, name, email, age):
++            self.name = name
++            self.email = email
++            self.age = age
++
++        def is_adult(self):
++            return self.age >= 18
++
++        def get_display_name(self):
++            return self.name.upper()  # BUG 1: Should not force uppercase
++
++        def validate_email(self):
++            return "@" in self.email  # BUG 2: Too simple, no domain check
++    EOF
++
++    cat > order.py << 'EOF'
++    from user import User
++
++    class Order:
++        def __init__(self, user, items):
++            self.user = user
++            self.items = items
++
++        def total(self):
++            total = 0
++            for item in self.items:
++                total += item["price"]  # BUG 3: Doesn't handle quantity
++            return total
++
++        def apply_discount(self, percent):
++            return self.total() * percent  # BUG 4: Should be total * (1 - percent/100)
++
++        def summary(self):
++            return f"Order for {self.user.get_display_name()}: ${self.total()}"
++    EOF
++
++    cat > test_app.py << 'EOF'
++    from user import User
++    from order import Order
++
++    def test_display_name():
++        u = User("Alice", "alice@example.com", 25)
++        assert u.get_display_name() == "Alice", f"Got {u.get_display_name()}"
++
++    def test_email_validation():
++        u = User("Bob", "bob@", 30)
++        assert u.validate_email() == False, "bob@ should be invalid"
++
++    def test_order_total():
++        u = User("Alice", "alice@example.com", 25)
++        items = [{"name": "Book", "price": 10, "qty": 2}, {"name": "Pen", "price": 5, "qty": 3}]
++        o = Order(u, items)
++        assert o.total() == 35, f"Expected 35, got {o.total()}"
++
++    def test_discount():
++        u = User("Alice", "alice@example.com", 25)
++        items = [{"name": "Book", "price": 100, "qty": 1}]
++        o = Order(u, items)
++        assert o.apply_discount(20) == 80, f"Expected 80, got {o.apply_discount(20)}"
++
++    if __name__ == "__main__":
++        tests = [test_display_name, test_email_validation, test_order_total, test_discount]
++        for t in tests:
++            try:
++                t()
++                print(f"\u2713 {t.__name__}")
++            except AssertionError as e:
++                print(f"\u2717 {t.__name__}: {e}")
++    EOF
++    ```
++
++2. Create the reasoning agent:
++
++    ```yaml save-as=reasoning.yaml
++    version: "2"
++
++    agents:
++      root:
++        model: $$model$$
++        description: Methodical debugger that plans before acting
++        instruction: |
++          You are a methodical debugging agent. You MUST reason carefully:
++
++          1. First, use your TODO tool to create a plan of all steps needed
++          2. Use your THINK tool before each fix to reason about the root cause
++          3. Use your MEMORY tool to track what you've fixed so far
++          4. Fix bugs ONE at a time, running tests after each fix
++          5. Update your TODO after each step
++
++          There are 4 bugs across 2 files. Find and fix ALL of them.
++          Do NOT rush. Plan first, think through each bug, then act.
++        toolsets:
++          - type: think
++          - type: todo
++          - type: memory
++            path: ./memory.db
++          - type: filesystem
++          - type: shell
++    ```
++
++3. Run it:
++
++    ```bash
++    docker agent run reasoning.yaml
++    ```
++
++4. Then ask:
++
++    ```console
++    There are 4 bugs across user.py and order.py. Run tests, plan your approach, and fix them one by one.
++    ```
++
++You'll see the agent build a TODO list, use `think` to reason about each root cause, fix one bug at a time, and use `memory` to track progress across iterations.
++
++### Key teaching point
++
++| Reasoning tool | What it does | Without it |
++|---|---|---|
++| `think` | Scratchpad to reason step-by-step | Agent jumps to conclusions, makes wrong fixes |
++| `todo` | Creates and tracks a multi-step plan | Agent loses track, skips bugs, repeats work |
++| `memory` | Retains context across the session | Agent forgets what it already fixed |
++
++These are what separate a reasoning agent from a simple autocomplete. We'll cover each tool in more depth in Step 4.
++
++---
++
++## Concept 3: Action
++
++Action is **how the agent changes its environment**. In Docker Agent, action has two forms: calling tools directly (filesystem, shell, MCP) and **delegating tasks to specialized sub-agents**.
++
++1. Create a project that needs multiple specialists:
++
++    ```bash
++    mkdir -p ~/action-test && cd ~/action-test
++
++    # A messy Python file that needs fixing, docs, and tests
++    cat > calculator.py << 'EOF'
++    # no docstrings, no error handling, inconsistent style
++    def add(a,b):
++        return a+b
++    def subtract(a,b):
++        return a-b
++    def divide(a,b):
++        return a/b
++    def multiply(a,b):
++        return a*b
++    EOF
++    ```
++
++2. Create a multi-agent team in `action.yaml`. The root agent **only delegates** — it never edits files itself:
++
++    ```yaml save-as=action.yaml
++    version: "2"
++
++    agents:
++      root:
++        model: $$model$$
++        description: Tech lead that delegates tasks to specialists
++        instruction: |
++          You are a tech lead. You have 3 specialists:
++          - coder: Refactors code, adds error handling, improves style
++          - tester: Writes comprehensive test files
++          - documenter: Writes README and docstrings
++
++          For calculator.py:
++          1. Delegate to coder to refactor and add error handling
++          2. Delegate to tester to write tests
++          3. Delegate to documenter to write a README
++          4. Verify everything works by running the tests yourself
++
++          Coordinate the team. Do NOT do the work yourself.
++        sub_agents: [coder, tester, documenter]
++        toolsets:
++          - type: shell
++
++      coder:
++        model: $$model$$
++        description: Refactors code and adds error handling
++        instruction: |
++          You are a senior Python developer. Your ACTION is to:
++          - Read the existing code
++          - Rewrite it with proper style (PEP 8)
++          - Add docstrings to every function
++          - Add error handling (e.g., ZeroDivisionError for divide)
++          - Write the improved file back
++        toolsets:
++          - type: filesystem
++
++      tester:
++        model: $$model$$
++        description: Writes comprehensive test suites
++        instruction: |
++          You are a QA engineer. Your ACTION is to:
++          - Read the source code
++          - Write a test file (test_calculator.py) with pytest
++          - Cover happy paths, edge cases, and error cases
++          - Include at least 2 tests per function
++        toolsets:
++          - type: filesystem
++
++      documenter:
++        model: $$model$$
++        description: Writes documentation and README files
++        instruction: |
++          You are a technical writer. Your ACTION is to:
++          - Read the source code
++          - Write a clear README.md with usage examples
++          - Include installation, usage, and API reference sections
++        toolsets:
++          - type: filesystem
++    ```
++
++3. Run it:
++
++    ```bash
++    docker agent run action.yaml
++    ```
++
++4. Then ask:
++
++    ```console
++    Refactor calculator.py, write tests, and create documentation. Use your team.
++    ```
++
++You'll see the root agent delegate to each specialist in turn, each one making its own filesystem changes, and the root agent verifying with `pytest` at the end.
++
++### Key teaching point
++
++| Action type | Docker Agent mechanism | Example |
++|---|---|---|
++| **Direct tool call** | `toolsets: [filesystem, shell]` | Read file, write file, run command |
++| **Sub-agent delegation** | `sub_agents: [coder, tester]` | Root hands off task to specialist |
++| **Environment change** | Edit, Write, Shell | Files created, code modified, tests run |
++
++The critical insight: the **root agent never touches a file**. It only has `shell` access to verify at the end. All the real work is delegated to specialists. This is the **"Agents are the New Microservices"** pattern — each agent has a single responsibility and its own action space.
++
++We'll go deeper into multi-agent teams in Step 7 (Sub-agents).
++
++---
++
++## Concept 4: Goal-Orientation
++
++Goal-orientation is **what drives the agent to keep working** — and what makes it stop. In Docker Agent, goals are defined through two fields: `instruction` (the agent's mission) and `description` (how other agents know when to delegate to it).
++
++The clearest way to see this: take the **same codebase** and run **two agents with different goals**.
++
++1. Create a Flask app with multiple issues:
++
++    ```bash
++    mkdir -p ~/goal-test && cd ~/goal-test
++
++    cat > app.py << 'EOF'
++    from flask import Flask, jsonify
++
++    app = Flask(__name__)
++
++    users = [
++        {"id": 1, "name": "Alice", "email": "alice@test.com"},
++        {"id": 2, "name": "Bob", "email": "bob@test.com"},
++    ]
++
++    @app.route("/users")
++    def get_users():
++        return users  # ISSUE: should use jsonify
++
++    @app.route("/users/<id>")
++    def get_user(id):
++        for u in users:
++            if u["id"] == id:  # ISSUE: id is string, not int
++                return u
++        return "Not found"  # ISSUE: should return 404 JSON
++
++    @app.route("/health")
++    def health():
++        return "ok"  # ISSUE: should return JSON with status
++
++    if __name__ == "__main__":
++        app.run(debug=True)
++    EOF
++
++    cat > requirements.txt << 'EOF'
++    flask
++    pytest
++    EOF
++    ```
++
++2. Create the **security-focused** agent — its goal is to **find risks and write a report**, not to fix anything:
++
++    ```yaml save-as=goal-security.yaml
++    version: "2"
++
++    agents:
++      root:
++        model: $$model$$
++        description: Security-focused code reviewer
++        instruction: |
++          Your GOAL is security. You are a security auditor.
++
++          Review app.py ONLY for security issues:
++          - Hardcoded credentials
++          - Missing input validation
++          - Debug mode in production
++          - Information leakage in error responses
++          - Missing CORS/auth headers
++
++          You STOP when you have identified all security risks
++          and written a security-report.md file.
++
++          You do NOT fix bugs. You do NOT add features.
++          You ONLY report security issues.
++        toolsets:
++          - type: filesystem
++          - type: shell
++    ```
++
++3. Create the **quality-focused** agent — its goal is to **fix code and verify it works**:
++
++    ```yaml save-as=goal-quality.yaml
++    version: "2"
++
++    agents:
++      root:
++        model: $$model$$
++        description: Code quality engineer
++        instruction: |
++          Your GOAL is code quality. You are a code quality engineer.
++
++          Review app.py ONLY for code quality issues:
++          - Proper return types (use jsonify for Flask)
++          - Type handling (string vs int comparisons)
++          - Proper HTTP status codes (404, 500)
++          - Consistent response format
++          - PEP 8 compliance
++
++          Fix ALL quality issues directly in app.py.
++          Run the app to verify your fixes work.
++
++          You STOP when the code meets quality standards.
++
++          You do NOT review for security. You do NOT write docs.
++          You ONLY fix code quality.
++        toolsets:
++          - type: filesystem
++          - type: shell
++    ```
++
++4. Run the security agent first:
++
++    ```bash
++    docker agent run goal-security.yaml
++    ```
++
++    Ask it:
++
++    ```console
++    Review app.py for security issues.
++    ```
++
++    The agent reads `app.py`, writes a `security-report.md`, and stops. **It does not modify `app.py`.**
++
++5. Now reset and run the quality agent on the same codebase:
++
++    ```bash
++    docker agent run goal-quality.yaml
++    ```
++
++    Ask it:
++
++    ```console
++    Review app.py for code quality issues and fix them.
++    ```
++
++    This agent **edits `app.py` directly** — adding `jsonify`, fixing the `int(id)` conversion, returning proper 404 JSON — and verifies the app still imports cleanly.
++
++### Key teaching point
++
++**Same codebase. Same toolsets. Different goals. Completely different behavior.**
++
++| | Security Agent | Quality Agent |
++|---|---|---|
++| **Goal** | Find risks, write report | Fix code, verify it works |
++| **`instruction`** | "Review ONLY for security" | "Fix ALL quality issues" |
++| **Output** | `security-report.md` (new file) | Modified `app.py` (edited file) |
++| **Stops when** | Report is written | Code passes quality check |
++| **Touches `app.py`?** | ❌ Never | ✅ Edits it |
++
++The `instruction` field is the agent's **mission statement** — it determines what the agent does, what it ignores, and when it considers the job done.
++
++The `description` field is the agent's **API contract** — in a multi-agent setup, the root agent reads each sub-agent's `description` to decide who to delegate to. When a user says "check this for security," the root agent routes to the agent whose description mentions security review.
++
++---
++
++## Concept 5: Autonomy
++
++Autonomy is the agent's ability to **loop independently** — deciding, acting, observing — with zero human intervention between steps.
++
++1. Create a small project with a buggy file and a test:
++
++    ```bash
++    mkdir -p ~/autonomy-test && cd ~/autonomy-test
++
++    cat > app.py << 'EOF'
++    def add(a, b):
++        return a - b  # BUG: should be a + b
++
++    def multiply(a, b):
++        return a * b
++
++    if __name__ == "__main__":
++        print(f"2 + 3 = {add(2, 3)}")
++        print(f"4 * 5 = {multiply(4, 5)}")
++    EOF
++
++    cat > test_app.py << 'EOF'
++    from app import add, multiply
++
++    def test_add():
++        assert add(2, 3) == 5, f"Expected 5, got {add(2, 3)}"
++
++    def test_multiply():
++        assert multiply(4, 5) == 20, f"Expected 20, got {multiply(4, 5)}"
++
++    if __name__ == "__main__":
++        test_add()
++        print("test_add passed")
++        test_multiply()
++        print("test_multiply passed")
++        print("All tests passed!")
++    EOF
++    ```
++
++2. Create the autonomous debugger agent:
++
++    ```yaml save-as=autonomy.yaml
++    version: "2"
++
++    agents:
++      root:
++        model: $$model$$
++        description: Autonomous bug debugger
++        instruction: |
++          You are an autonomous debugging agent.
++          1. Run the tests using: python test_app.py
++          2. Read the error output
++          3. Read the source code to find the bug
++          4. Fix the bug
++          5. Run the tests again to verify
++          6. Stop only when all tests pass
++
++          Do NOT ask for permission. Just do it.
++        toolsets:
++          - type: filesystem
++          - type: shell
++    ```
++
++    > Notice the two toolsets defined:
++    >
++    > - `filesystem` — to read and edit `app.py`
++    > - `shell` — to run `python test_app.py`
++    >
++    > If you remove `type: shell`, the agent can read and edit files but won't be able to run tests — it would be like a developer who can write code but has no terminal.
++
++3. Run the agent:
++
++    ```bash
++    docker agent run autonomy.yaml
++    ```
++
++4. Then simply tell it:
++
++    ```console
++    Start
++    ```
++
++The agent will autonomously loop:
++
++```
++Iteration 1 → shell: python test_app.py
++             → sees "AssertionError: Expected 5, got -1"
++
++Iteration 2 → filesystem: reads app.py
++             → spots "return a - b"
++
++Iteration 3 → think: "The add function subtracts instead of adding"
++
++Iteration 4 → filesystem: writes fixed app.py (a + b)
++
++Iteration 5 → shell: python test_app.py
++             → "All tests passed!"
++
++Agent stops ✅
++```
++
++No human told it what to do between steps. **That's autonomy in action.**
++
++### The autonomy boundary
++
++With `docker agent run`, the autonomy boundary is defined by:
++
++- The **instruction itself** (telling the agent when to stop)
++- The **model's built-in tool-calling loop** (the runtime keeps looping as long as the model makes tool calls)
++- **Ctrl+C** to manually stop
++
++You can also set an **explicit guardrail** with `--max-iterations`, which gives the agent a hard budget of autonomous cycles to work within. Even if it hasn't finished, it stops at the limit.
++
++### Multi-layered autonomy
++
++Once you combine sub-agents (Concept 3) with the agentic loop, autonomy becomes **multi-layered**:
++
++- The **root agent** autonomously decides *who* to delegate to
++- Each **sub-agent** autonomously decides *how* to do its job
++- The **root agent** autonomously decides *when the job is done*
++
++This is what makes Docker Agent truly agentic — compared to a simple chatbot that just responds once, this system makes a chain of independent decisions across multiple specialists.
++
++---
++
++## Putting it all together
++
++The five concepts aren't separate features — they work together every time an agent runs:
++
++1. **Perception** lets the agent see (`toolsets`)
++2. **Reasoning** lets the agent think (`think`, `todo`, `memory`)
++3. **Action** lets the agent change things (`toolsets` + `sub_agents`)
++4. **Goal-orientation** drives behavior and termination (`instruction`, `description`)
++5. **Autonomy** wraps it all in a loop with a budget (`--max-iterations`)
++
++Every Docker Agent YAML you write is a configuration of these five pillars. As you go through the rest of this workshop, try to spot which pillar each new feature is reinforcing.
++
++## Next steps
++
++In Step 4, we'll go deeper into the built-in tools (`think`, `todo`, `memory`, `shell`, `filesystem`) — the practical building blocks of perception and reasoning.
+diff --git a/labspace/03-using-builtin-tools.md b/labspace/04-using-builtin-tools.md
+similarity index 99%
+rename from labspace/03-using-builtin-tools.md
+rename to labspace/04-using-builtin-tools.md
+index 5c702b0..3c7d280 100644
+--- a/labspace/03-using-builtin-tools.md
++++ b/labspace/04-using-builtin-tools.md
+@@ -1,4 +1,4 @@
+-# Step 3: Builtin Tools
++# Step 4: Builtin Tools
+ 
+ An agent on its own can't do much other than just chat with you. To make agents
+ more useful we need to give the agent tools that it can use to gather
+diff --git a/labspace/04-using-mcp.md b/labspace/05-using-mcp.md
+similarity index 97%
+rename from labspace/04-using-mcp.md
+rename to labspace/05-using-mcp.md
+index f747624..af95588 100644
+--- a/labspace/04-using-mcp.md
++++ b/labspace/05-using-mcp.md
+@@ -1,4 +1,4 @@
+-# Step 4: MCP (Model Context Protocol)
++# Step 5: MCP (Model Context Protocol)
+ 
+ [MCP](https://modelcontextprotocol.io/) is an open-source standard for
+ connecting AI applications to external systems.
+@@ -187,4 +187,4 @@ Let's combine everything we've learned to create a powerful developer agent.
+ 
+ ## Next Steps
+ 
+-In Step 5, we'll learn how to share your agents with others using Docker Registry.
++In Step 6, we'll learn how to share your agents with others using Docker Registry.
+diff --git a/labspace/05-sharing-agents.md b/labspace/06-sharing-agents.md
+similarity index 90%
+rename from labspace/05-sharing-agents.md
+rename to labspace/06-sharing-agents.md
+index bea7e4f..53d0d47 100644
+--- a/labspace/05-sharing-agents.md
++++ b/labspace/06-sharing-agents.md
+@@ -1,4 +1,4 @@
+-## Step 5: Sharing Agents with Docker Registry
++## Step 6: Sharing Agents with Docker Registry
+ 
+ By now, you should have a couple of agents, and maybe one that already does something useful. Wouldn't it be nice if we could share agents with others?
+ 
+@@ -43,4 +43,4 @@ docker agent run $$dockerhubid$$/docker-agent-developer
+ 
+ ## Next Steps
+ 
+-In Step 6, we'll explore multi-agent systems and sub-agents.
++In Step 7, we'll explore multi-agent systems and sub-agents.
+diff --git a/labspace/06-sub-agents.md b/labspace/07-sub-agents.md
+similarity index 99%
+rename from labspace/06-sub-agents.md
+rename to labspace/07-sub-agents.md
+index 88656d2..e50cfcb 100644
+--- a/labspace/06-sub-agents.md
++++ b/labspace/07-sub-agents.md
+@@ -1,4 +1,4 @@
+-# Step 6: Introduction to Sub-agents
++# Step 7: Introduction to Sub-agents
+ 
+ In the previous steps, we created individual agents with various tools. Now
+ we'll learn about Docker Agent's most powerful feature: sub-agents. This allows you to
+diff --git a/labspace/07-model-runner.md b/labspace/08-model-runner.md
+similarity index 98%
+rename from labspace/07-model-runner.md
+rename to labspace/08-model-runner.md
+index e33cd7c..cafcefb 100644
+--- a/labspace/07-model-runner.md
++++ b/labspace/08-model-runner.md
+@@ -1,4 +1,4 @@
+-# Step 7: Using Docker Model Runner (DMR)
++# Step 8: Using Docker Model Runner (DMR)
+ 
+ Docker Model Runner (DMR) makes it easy to manage, run, and deploy AI models using Docker. Designed for developers, Docker Model Runner streamlines the process of pulling, running, and serving large language models (LLMs) and other AI models directly from Docker Hub or any OCI-compliant registry.
+ 
+diff --git a/labspace/07-conclusion.md b/labspace/09-conclusion.md
+similarity index 97%
+rename from labspace/07-conclusion.md
+rename to labspace/09-conclusion.md
+index 8d01acf..9d6aef9 100644
+--- a/labspace/07-conclusion.md
++++ b/labspace/09-conclusion.md
+@@ -1,4 +1,4 @@
+-# Step 8: Conclusion
++# Step 9: Conclusion
+ 
+ Congratulations! You've completed the Docker Agent workshop and learned how to build
+ intelligent agents that can work together on complex tasks.
+diff --git a/labspace/labspace.yaml b/labspace/labspace.yaml
+index 45c07d1..2708eb6 100644
+--- a/labspace/labspace.yaml
++++ b/labspace/labspace.yaml
+@@ -7,13 +7,17 @@ sections:
+     contentPath: 01-introduction.md
+   - title: Getting Started
+     contentPath: 02-getting-started.md
++  - title: Agent Concepts
++    contentPath: 03-agent-concepts.md
+   - title: Using Built-in tools
+-    contentPath: 03-using-builtin-tools.md  
++    contentPath: 04-using-builtin-tools.md
+   - title: Using MCP
+-    contentPath: 04-using-mcp.md
++    contentPath: 05-using-mcp.md
+   - title: Sharing agents
+-    contentPath: 05-sharing-agents.md
++    contentPath: 06-sharing-agents.md
+   - title: Introduction to Sub-agents
+-    contentPath: 06-sub-agents.md
++    contentPath: 07-sub-agents.md
++  - title: Using Docker Model Runner
++    contentPath: 08-model-runner.md
+   - title: Conclusion
+-    contentPath: 07-conclusion.md
++    contentPath: 09-conclusion.md

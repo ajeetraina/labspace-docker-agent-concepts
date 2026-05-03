@@ -101,4 +101,4 @@ Let's create the simplest possible agent.
 
 ## Next Steps
 
-In Step 3, we'll dive deeper into agent configuration and explore the powerful built-in tools that Docker Agent provides for file operations, web browsing, and more.
+In Step 3, we'll explore the five foundational concepts that make an agent an agent — and you'll see each one in action with small, working examples.

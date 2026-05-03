@@ -7,13 +7,17 @@ sections:
     contentPath: 01-introduction.md
   - title: Getting Started
     contentPath: 02-getting-started.md
+  - title: Agent Concepts
+    contentPath: 03-agent-concepts.md
   - title: Using Built-in tools
-    contentPath: 03-using-builtin-tools.md  
+    contentPath: 04-using-builtin-tools.md
   - title: Using MCP
-    contentPath: 04-using-mcp.md
+    contentPath: 05-using-mcp.md
   - title: Sharing agents
-    contentPath: 05-sharing-agents.md
+    contentPath: 06-sharing-agents.md
   - title: Introduction to Sub-agents
-    contentPath: 06-sub-agents.md
+    contentPath: 07-sub-agents.md
+  - title: Using Docker Model Runner
+    contentPath: 08-model-runner.md
   - title: Conclusion
-    contentPath: 07-conclusion.md
+    contentPath: 09-conclusion.md

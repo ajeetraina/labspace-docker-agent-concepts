@@ -1,4 +1,4 @@
-# Step 8: Conclusion
+# Step 9: Conclusion
 
 Congratulations! You've completed the Docker Agent workshop and learned how to build
 intelligent agents that can work together on complex tasks.
