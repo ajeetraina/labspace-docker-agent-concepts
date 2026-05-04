@@ -200,7 +200,7 @@ Reasoning is **how the agent thinks through problems**. Docker Agent has three b
     EOF
     ```
 
-2. Create the reasoning agent:
+2. Create a `reasoning.yaml` file with the following contents:
 
     ```yaml save-as=reasoning.yaml
     version: "2"
@@ -415,7 +415,7 @@ The clearest way to see this: take the **same codebase** and run **two agents wi
     EOF
     ```
 
-2. Create the **security-focused** agent — its goal is to **find risks and write a report**, not to fix anything:
+2. Create a `goal-security.yaml` file with the following contents (its goal is to **find risks and write a report**, not to fix anything):
 
     ```yaml save-as=goal-security.yaml
     version: "2"
@@ -444,7 +444,7 @@ The clearest way to see this: take the **same codebase** and run **two agents wi
           - type: shell
     ```
 
-3. Create the **quality-focused** agent — its goal is to **fix code and verify it works**:
+3. Create a `goal-quality.yaml` file with the following contents (its goal is to **fix code and verify it works**):
 
     ```yaml save-as=goal-quality.yaml
     version: "2"
@@ -560,7 +560,7 @@ Autonomy is the agent's ability to **loop independently** — deciding, acting, 
     EOF
     ```
 
-2. Create the autonomous debugger agent:
+2. Create an `autonomy.yaml` file with the following contents:
 
     ```yaml save-as=autonomy.yaml
     version: "2"
