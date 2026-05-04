@@ -26,7 +26,7 @@ Perception is **how the agent sees its environment**. An agent without toolsets 
 
     ```bash
     mkdir -p ~/perception-test && cd ~/perception-test
-
+    
     # Source 1: A config file with a problem
     cat > config.json << 'EOF'
     {
@@ -41,7 +41,7 @@ Perception is **how the agent sees its environment**. An agent without toolsets 
       "api_key": "sk-1234567890abcdef"
     }
     EOF
-
+    
     # Source 2: A deployment script with hardcoded secrets
     cat > deploy.sh << 'EOF'
     #!/bin/bash
@@ -49,7 +49,7 @@ Perception is **how the agent sees its environment**. An agent without toolsets 
     docker run -e DB_PASSWORD=admin123 -e API_KEY=sk-1234567890abcdef myapp:latest
     echo "Deploy complete"
     EOF
-
+    
     # Source 3: A README with project context
     cat > README.md << 'EOF'
     # MyApp
@@ -63,23 +63,23 @@ Perception is **how the agent sees its environment**. An agent without toolsets 
 
     ```yaml save-as=perception.yaml
     version: "2"
-
+    
     agents:
       root:
         model: $$model$$
         description: Security auditor with multi-layer perception
         instruction: |
           You are a security auditor. You can perceive the environment through:
-
+    
           1. FILESYSTEM perception - Read all files in the current directory
           2. SHELL perception - Run commands like `grep`, `find`, `cat` to scan
           3. WEB perception - Search for latest security best practices
-
+    
           Audit this project for security issues. Use ALL your senses:
           - Read every file to find hardcoded secrets
           - Run shell commands to scan for patterns like passwords, API keys
           - Search the web for current best practices on secret management
-
+    
           Report what you found using each perception method.
         toolsets:
           - type: filesystem
@@ -126,69 +126,69 @@ Reasoning is **how the agent thinks through problems**. Docker Agent has three b
 
     ```bash
     mkdir -p ~/reasoning-test && cd ~/reasoning-test
-
+    
     cat > user.py << 'EOF'
     class User:
         def __init__(self, name, email, age):
             self.name = name
             self.email = email
             self.age = age
-
+    
         def is_adult(self):
             return self.age >= 18
-
+    
         def get_display_name(self):
             return self.name.upper()  # BUG 1: Should not force uppercase
-
+    
         def validate_email(self):
             return "@" in self.email  # BUG 2: Too simple, no domain check
     EOF
-
+    
     cat > order.py << 'EOF'
     from user import User
-
+    
     class Order:
         def __init__(self, user, items):
             self.user = user
             self.items = items
-
+    
         def total(self):
             total = 0
             for item in self.items:
                 total += item["price"]  # BUG 3: Doesn't handle quantity
             return total
-
+    
         def apply_discount(self, percent):
             return self.total() * percent  # BUG 4: Should be total * (1 - percent/100)
-
+    
         def summary(self):
             return f"Order for {self.user.get_display_name()}: ${self.total()}"
     EOF
-
+    
     cat > test_app.py << 'EOF'
     from user import User
     from order import Order
-
+    
     def test_display_name():
         u = User("Alice", "alice@example.com", 25)
         assert u.get_display_name() == "Alice", f"Got {u.get_display_name()}"
-
+    
     def test_email_validation():
         u = User("Bob", "bob@", 30)
         assert u.validate_email() == False, "bob@ should be invalid"
-
+    
     def test_order_total():
         u = User("Alice", "alice@example.com", 25)
         items = [{"name": "Book", "price": 10, "qty": 2}, {"name": "Pen", "price": 5, "qty": 3}]
         o = Order(u, items)
         assert o.total() == 35, f"Expected 35, got {o.total()}"
-
+    
     def test_discount():
         u = User("Alice", "alice@example.com", 25)
         items = [{"name": "Book", "price": 100, "qty": 1}]
         o = Order(u, items)
         assert o.apply_discount(20) == 80, f"Expected 80, got {o.apply_discount(20)}"
-
+    
     if __name__ == "__main__":
         tests = [test_display_name, test_email_validation, test_order_total, test_discount]
         for t in tests:
@@ -204,20 +204,20 @@ Reasoning is **how the agent thinks through problems**. Docker Agent has three b
 
     ```yaml save-as=reasoning.yaml
     version: "2"
-
+    
     agents:
       root:
         model: $$model$$
         description: Methodical debugger that plans before acting
         instruction: |
           You are a methodical debugging agent. You MUST reason carefully:
-
+    
           1. First, use your TODO tool to create a plan of all steps needed
           2. Use your THINK tool before each fix to reason about the root cause
           3. Use your MEMORY tool to track what you've fixed so far
           4. Fix bugs ONE at a time, running tests after each fix
           5. Update your TODO after each step
-
+    
           There are 4 bugs across 2 files. Find and fix ALL of them.
           Do NOT rush. Plan first, think through each bug, then act.
         toolsets:
@@ -263,7 +263,7 @@ Action is **how the agent changes its environment**. In Docker Agent, action has
 
     ```bash
     mkdir -p ~/action-test && cd ~/action-test
-
+    
     # A messy Python file that needs fixing, docs, and tests
     cat > calculator.py << 'EOF'
     # no docstrings, no error handling, inconsistent style
@@ -282,7 +282,7 @@ Action is **how the agent changes its environment**. In Docker Agent, action has
 
     ```yaml save-as=action.yaml
     version: "2"
-
+    
     agents:
       root:
         model: $$model$$
@@ -292,18 +292,18 @@ Action is **how the agent changes its environment**. In Docker Agent, action has
           - coder: Refactors code, adds error handling, improves style
           - tester: Writes comprehensive test files
           - documenter: Writes README and docstrings
-
+    
           For calculator.py:
           1. Delegate to coder to refactor and add error handling
           2. Delegate to tester to write tests
           3. Delegate to documenter to write a README
           4. Verify everything works by running the tests yourself
-
+    
           Coordinate the team. Do NOT do the work yourself.
         sub_agents: [coder, tester, documenter]
         toolsets:
           - type: shell
-
+    
       coder:
         model: $$model$$
         description: Refactors code and adds error handling
@@ -316,7 +316,7 @@ Action is **how the agent changes its environment**. In Docker Agent, action has
           - Write the improved file back
         toolsets:
           - type: filesystem
-
+    
       tester:
         model: $$model$$
         description: Writes comprehensive test suites
@@ -328,7 +328,7 @@ Action is **how the agent changes its environment**. In Docker Agent, action has
           - Include at least 2 tests per function
         toolsets:
           - type: filesystem
-
+    
       documenter:
         model: $$model$$
         description: Writes documentation and README files
@@ -379,36 +379,36 @@ The clearest way to see this: take the **same codebase** and run **two agents wi
 
     ```bash
     mkdir -p ~/goal-test && cd ~/goal-test
-
+    
     cat > app.py << 'EOF'
     from flask import Flask, jsonify
-
+    
     app = Flask(__name__)
-
+    
     users = [
         {"id": 1, "name": "Alice", "email": "alice@test.com"},
         {"id": 2, "name": "Bob", "email": "bob@test.com"},
     ]
-
+    
     @app.route("/users")
     def get_users():
         return users  # ISSUE: should use jsonify
-
+    
     @app.route("/users/<id>")
     def get_user(id):
         for u in users:
             if u["id"] == id:  # ISSUE: id is string, not int
                 return u
         return "Not found"  # ISSUE: should return 404 JSON
-
+    
     @app.route("/health")
     def health():
         return "ok"  # ISSUE: should return JSON with status
-
+    
     if __name__ == "__main__":
         app.run(debug=True)
     EOF
-
+    
     cat > requirements.txt << 'EOF'
     flask
     pytest
@@ -419,24 +419,24 @@ The clearest way to see this: take the **same codebase** and run **two agents wi
 
     ```yaml save-as=goal-security.yaml
     version: "2"
-
+    
     agents:
       root:
         model: $$model$$
         description: Security-focused code reviewer
         instruction: |
           Your GOAL is security. You are a security auditor.
-
+    
           Review app.py ONLY for security issues:
           - Hardcoded credentials
           - Missing input validation
           - Debug mode in production
           - Information leakage in error responses
           - Missing CORS/auth headers
-
+    
           You STOP when you have identified all security risks
           and written a security-report.md file.
-
+    
           You do NOT fix bugs. You do NOT add features.
           You ONLY report security issues.
         toolsets:
@@ -448,26 +448,26 @@ The clearest way to see this: take the **same codebase** and run **two agents wi
 
     ```yaml save-as=goal-quality.yaml
     version: "2"
-
+    
     agents:
       root:
         model: $$model$$
         description: Code quality engineer
         instruction: |
           Your GOAL is code quality. You are a code quality engineer.
-
+    
           Review app.py ONLY for code quality issues:
           - Proper return types (use jsonify for Flask)
           - Type handling (string vs int comparisons)
           - Proper HTTP status codes (404, 500)
           - Consistent response format
           - PEP 8 compliance
-
+    
           Fix ALL quality issues directly in app.py.
           Run the app to verify your fixes work.
-
+    
           You STOP when the code meets quality standards.
-
+    
           You do NOT review for security. You do NOT write docs.
           You ONLY fix code quality.
         toolsets:
@@ -529,28 +529,28 @@ Autonomy is the agent's ability to **loop independently** — deciding, acting, 
 
     ```bash
     mkdir -p ~/autonomy-test && cd ~/autonomy-test
-
+    
     cat > app.py << 'EOF'
     def add(a, b):
         return a - b  # BUG: should be a + b
-
+    
     def multiply(a, b):
         return a * b
-
+    
     if __name__ == "__main__":
         print(f"2 + 3 = {add(2, 3)}")
         print(f"4 * 5 = {multiply(4, 5)}")
     EOF
-
+    
     cat > test_app.py << 'EOF'
     from app import add, multiply
-
+    
     def test_add():
         assert add(2, 3) == 5, f"Expected 5, got {add(2, 3)}"
-
+    
     def test_multiply():
         assert multiply(4, 5) == 20, f"Expected 20, got {multiply(4, 5)}"
-
+    
     if __name__ == "__main__":
         test_add()
         print("test_add passed")
@@ -564,7 +564,7 @@ Autonomy is the agent's ability to **loop independently** — deciding, acting, 
 
     ```yaml save-as=autonomy.yaml
     version: "2"
-
+    
     agents:
       root:
         model: $$model$$
@@ -577,7 +577,7 @@ Autonomy is the agent's ability to **loop independently** — deciding, acting, 
           4. Fix the bug
           5. Run the tests again to verify
           6. Stop only when all tests pass
-
+    
           Do NOT ask for permission. Just do it.
         toolsets:
           - type: filesystem
