@@ -25,8 +25,6 @@ Perception is **how the agent sees its environment**. An agent without toolsets 
 1. Create a project with multiple "perception sources":
 
     ```bash
-    mkdir -p ~/perception-test && cd ~/perception-test
-    
     # Source 1: A config file with a problem
     cat > config.json << 'EOF'
     {
@@ -125,8 +123,6 @@ Reasoning is **how the agent thinks through problems**. Docker Agent has three b
 1. Create a complex project that requires planning:
 
     ```bash
-    mkdir -p ~/reasoning-test && cd ~/reasoning-test
-    
     cat > user.py << 'EOF'
     class User:
         def __init__(self, name, email, age):
@@ -200,7 +196,7 @@ Reasoning is **how the agent thinks through problems**. Docker Agent has three b
     EOF
     ```
 
-2. Create the reasoning agent:
+2. Create a `reasoning.yaml` file with the following contents:
 
     ```yaml save-as=reasoning.yaml
     version: "2"
@@ -262,8 +258,6 @@ Action is **how the agent changes its environment**. In Docker Agent, action has
 1. Create a project that needs multiple specialists:
 
     ```bash
-    mkdir -p ~/action-test && cd ~/action-test
-    
     # A messy Python file that needs fixing, docs, and tests
     cat > calculator.py << 'EOF'
     # no docstrings, no error handling, inconsistent style
@@ -278,7 +272,7 @@ Action is **how the agent changes its environment**. In Docker Agent, action has
     EOF
     ```
 
-2. Create a multi-agent team in `action.yaml`. The root agent **only delegates** — it never edits files itself:
+2. Create an `action.yaml` file with the following contents. The root agent only delegates and never edits files itself:
 
     ```yaml save-as=action.yaml
     version: "2"
@@ -378,8 +372,6 @@ The clearest way to see this: take the **same codebase** and run **two agents wi
 1. Create a Flask app with multiple issues:
 
     ```bash
-    mkdir -p ~/goal-test && cd ~/goal-test
-    
     cat > app.py << 'EOF'
     from flask import Flask, jsonify
     
@@ -415,7 +407,7 @@ The clearest way to see this: take the **same codebase** and run **two agents wi
     EOF
     ```
 
-2. Create the **security-focused** agent — its goal is to **find risks and write a report**, not to fix anything:
+2. Create a `goal-security.yaml` file. Its goal is to find risks and write a report, not to fix anything:
 
     ```yaml save-as=goal-security.yaml
     version: "2"
@@ -444,7 +436,7 @@ The clearest way to see this: take the **same codebase** and run **two agents wi
           - type: shell
     ```
 
-3. Create the **quality-focused** agent — its goal is to **fix code and verify it works**:
+3. Create a `goal-quality.yaml` file. Its goal is to fix code and verify it works:
 
     ```yaml save-as=goal-quality.yaml
     version: "2"
@@ -489,7 +481,7 @@ The clearest way to see this: take the **same codebase** and run **two agents wi
 
     The agent reads `app.py`, writes a `security-report.md`, and stops. **It does not modify `app.py`.**
 
-5. Now reset and run the quality agent on the same codebase:
+5. Now run the quality agent on the same `app.py`:
 
     ```bash
     docker agent run goal-quality.yaml
@@ -528,8 +520,6 @@ Autonomy is the agent's ability to **loop independently** — deciding, acting, 
 1. Create a small project with a buggy file and a test:
 
     ```bash
-    mkdir -p ~/autonomy-test && cd ~/autonomy-test
-    
     cat > app.py << 'EOF'
     def add(a, b):
         return a - b  # BUG: should be a + b
@@ -560,7 +550,7 @@ Autonomy is the agent's ability to **loop independently** — deciding, acting, 
     EOF
     ```
 
-2. Create the autonomous debugger agent:
+2. Create an `autonomy.yaml` file with the following contents:
 
     ```yaml save-as=autonomy.yaml
     version: "2"
