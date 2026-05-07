@@ -96,6 +96,10 @@ Let's create the simplest possible agent.
     Give me an interesting and lesser-known fact about Docker
     ```
 
+    ```console
+    How do I read a file in Python
+    ```
+
 4. To exit the agent's interface, press `Ctrl+C`.
 
 
