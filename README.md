@@ -21,7 +21,7 @@ In this workshop we will learn:
 To launch the lab, run the following command:
 
 ```bash
-docker compose -f oci://dockersamples/labspace-docker-agent up
+docker compose -f oci://ajeetraina777/labspace-docker-agent-concepts up
 ```
  
 and then open your browser to [https://localhost:3030](https://localhost:3030)
