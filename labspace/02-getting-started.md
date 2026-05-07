@@ -105,6 +105,6 @@ Let's create the simplest possible agent.
 
 ## Next Steps
 
-If you look closely at our last prompt "How do I read a file in Python", you might have noticed that the agent can answer coding questions, but it can't see your files or run commands yet. A coding agent needs to interact with your project files and run commands. You enable these capabilities by adding toolsets. We'll look at toolsets in our next lab.
+If you look closely at our last prompt "How do I read a file in Python", you might have noticed that the agent can answer coding questions, but it can't see your files or run commands yet. A coding agent needs to interact with your project files and run commands. You enable these capabilities by adding toolsets. We'll look at toolsets in our "Perception" Lab.
 
 In Step 3, we'll explore the five foundational concepts that make an agent an agent — and you'll see each one in action with small, working examples. 
