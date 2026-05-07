@@ -16,7 +16,7 @@ In this workshop we will learn:
 
 
 
-## Launch the Labspace
+## Launch the Labspace (WIP)
 
 To launch the lab, run the following command:
 
