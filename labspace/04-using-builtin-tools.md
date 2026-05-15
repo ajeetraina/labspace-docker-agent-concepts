@@ -172,7 +172,7 @@ Let's enhance our developer agent with these tools.
     Write a snake game in an index.html file
     ```
 
-To access the snake game, you can run the command to run `npx serve`:
+To access the snake game, you can run the command to run npx serve:
 
     ```bash
     npx serve . -p 8000
