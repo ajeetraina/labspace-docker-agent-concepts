@@ -174,7 +174,7 @@ Let's enhance our developer agent with these tools.
 
 To access the snake game, you can run the command to run `npx serve`:
 
-     ```bash
+    ```bash
     npx serve . -p 8000
     ```   
 
