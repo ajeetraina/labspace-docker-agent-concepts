@@ -172,6 +172,14 @@ Let's enhance our developer agent with these tools.
     Write a snake game in an index.html file
     ```
 
+To access the snake game, you can run the command to run `npx serve`:
+
+     ```bash
+    npx serve . -p 8000
+    ```   
+
+Click on Ports on VS Code Server and add 8000. You should be able to play Snake Game on the browser.
+
 ## Extra
 
 This developer agent is a good start, but there's one piece missing that
